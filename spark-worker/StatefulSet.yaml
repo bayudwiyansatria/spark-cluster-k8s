@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app.kubernetes.io/component: worker
+    app.kubernetes.io/instance: spark
+    app.kubernetes.io/name: spark
+  name: spark-worker
+  namespace: spark-cluster
+spec:
+  podManagementPolicy: OrderedReady
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: worker
+      app.kubernetes.io/instance: spark
+      app.kubernetes.io/name: spark
+  serviceName: spark
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: worker
+        app.kubernetes.io/instance: spark
+        app.kubernetes.io/name: spark
+    spec:
+      containers:
+      - env:
+        - name: SPARK_MODE
+          value: worker
+        - name: BASH_DEBUG
+          value: "0"
+        - name: SPARK_DAEMON_MEMORY
+        - name: SPARK_WORKER_WEBUI_PORT
+          value: "8081"
+        - name: SPARK_DAEMON_JAVA_OPTS
+        - name: SPARK_MASTER_URL
+          value: spark://45.32.105.196:7077
+        - name: SPARK_WORKER_OPTS
+        image: docker.io/bitnami/spark:2.4.5-debian-10-r111
+        imagePullPolicy: IfNotPresent
+        name: spark-worker
+        ports:
+        - containerPort: 8081
+          name: http
+          protocol: TCP
+        resources: {}
+      restartPolicy: Always
+      securityContext:
+        fsGroup: 1001
+        runAsUser: 1001
+      terminationGracePeriodSeconds: 30
+  updateStrategy:
+    rollingUpdate:
+      partition: 0
+    type: RollingUpdate
